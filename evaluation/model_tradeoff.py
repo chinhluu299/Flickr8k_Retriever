@@ -49,7 +49,7 @@ def query_ms(fn) -> float:
 
 
 def main():
-    roles = {configs.RETRIEVAL_MODEL: "tang 1 (dense)", configs.RERANK_MODEL: "tang 2 (rerank)"}
+    roles = {configs.RETRIEVAL_MODEL: "tầng 1 (dense)", configs.RERANK_MODEL: "tầng 2 (rerank)"}
     rows = []
     for key, cfg in configs.MODELS.items():
         meta = json.loads((configs.ARTIFACTS / key / "meta.json").read_text())
@@ -63,16 +63,16 @@ def main():
     pairs = [(QUERY, "A dog runs in the snow .")] * 50
     rows.append(("cross-encoder ms-marco-MiniLM-L-6", None, dir_mb(CE_ID), None,
                  query_ms(lambda: ce.predict(pairs, show_progress_bar=False)), None,
-                 "doi chung tang 2, text-text, 50 cap"))
+                 "đối chứng tầng 2, text-text, 50 cặp"))
 
     f = lambda v, spec: "-" if v is None else format(v, spec)
-    lines = ["# Trade-off giua cac model", "",
-             "| model | dim | dung luong (MB) | build ms/anh | encode truy van (ms) | R@1 text->image | vai tro |",
+    lines = ["# Trade-off giữa các model", "",
+             "| model | dim | dung lượng (MB) | build ms/ảnh | encode truy vấn (ms) | R@1 text→image | vai trò |",
              "|---|---|---|---|---|---|---|"]
     for lab, dim, mb, ms_img, ms_q, r1, role in rows:
         lines.append(f"| {lab} | {f(dim, 'd')} | {f(mb, '.0f')} | {f(ms_img, '.1f')} | {f(ms_q, '.1f')} | {f(r1, '.2f')} | {role} |")
-    lines += ["", f"Do tre do voi batch 1 tren {pick_device()}, trung vi 10 lan sau warm-up. "
-              "Dung luong la thu muc model trong cache HuggingFace.", ""]
+    lines += ["", f"Độ trễ đo với batch 1 trên {pick_device()}, trung vị 10 lần sau warm-up. "
+              "Dung lượng là kích thước file trọng số của model.", ""]
     (RESULTS / "model_tradeoff.md").write_text("\n".join(lines), encoding="utf-8")
     print(f"-> {RESULTS / 'model_tradeoff.md'}")
 

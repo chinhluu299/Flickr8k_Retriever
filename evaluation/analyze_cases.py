@@ -20,14 +20,14 @@ RESULTS = Path(__file__).parent / "results"
 
 # 3 cau de + 5 cau kho (dem so, quan he khong gian, phu dinh, chu trong anh)
 PROBE_QUERIES = [
-    ("two dogs playing in the snow",            "de, chu de pho bien"),
-    ("a surfer riding a big wave",              "de, doi tuong va canh ro"),
-    ("a man in a red shirt climbing a rock",    "trung binh, mau + hanh dong"),
-    ("exactly three people sitting on a bench", "kho, dem so"),
-    ("a dog to the LEFT of a child",            "kho, quan he khong gian"),
-    ("a street with no cars at all",            "kho, phu dinh"),
-    ("a sign that reads STOP",                  "kho, chu trong anh"),
-    ("a person NOT wearing a helmet",           "kho, phu dinh"),
+    ("two dogs playing in the snow",            "dễ, chủ đề phổ biến"),
+    ("a surfer riding a big wave",              "dễ, đối tượng và cảnh rõ"),
+    ("a man in a red shirt climbing a rock",    "trung bình, màu + hành động"),
+    ("exactly three people sitting on a bench", "khó, đếm số"),
+    ("a dog to the LEFT of a child",            "khó, quan hệ không gian"),
+    ("a street with no cars at all",            "khó, phủ định"),
+    ("a sign that reads STOP",                  "khó, chữ trong ảnh"),
+    ("a person NOT wearing a helmet",           "khó, phủ định"),
 ]
 
 # truy van de thay khac biet BM25 vs dense: tu hiem, dien dat khac tu
@@ -55,17 +55,17 @@ def dataset_stats(corpus: Corpus) -> None:
              if w not in STOP and len(w) > 2]
     lines = [
         "# Dataset Flickr8k", "",
-        f"- nguon: `{configs.DATASET_NAME}` (HuggingFace), split `{corpus.split}`",
-        f"- so anh: {corpus.n_images:,}",
-        f"- so caption: {corpus.n_captions:,} ({corpus.n_captions / corpus.n_images:.1f}/anh)",
-        "", "## Do dai caption (so tu)", "", "| | |", "|---|---|",
-        f"| trung binh | {np.mean(lens):.1f} |",
-        f"| trung vi | {np.median(lens):.0f} |",
-        f"| do lech chuan | {np.std(lens):.1f} |",
-        f"| min | {min(lens)} |",
-        f"| max | {max(lens)} |",
+        f"- nguồn: `{configs.DATASET_NAME}` (HuggingFace), split `{corpus.split}`",
+        f"- số ảnh: {corpus.n_images:,}",
+        f"- số caption: {corpus.n_captions:,} ({corpus.n_captions / corpus.n_images:.1f}/ảnh)",
+        "", "## Độ dài caption (số từ)", "", "| | |", "|---|---|",
+        f"| trung bình | {np.mean(lens):.1f} |",
+        f"| trung vị | {np.median(lens):.0f} |",
+        f"| độ lệch chuẩn | {np.std(lens):.1f} |",
+        f"| nhỏ nhất | {min(lens)} |",
+        f"| lớn nhất | {max(lens)} |",
         f"| p90 | {np.percentile(lens, 90):.0f} |",
-        "", "## 25 tu pho bien nhat", "", "| tu | tan so |", "|---|---|",
+        "", "## 25 từ phổ biến nhất", "", "| từ | tần số |", "|---|---|",
         *[f"| {w} | {c} |" for w, c in Counter(words).most_common(25)], "",
     ]
     (RESULTS / "dataset_stats.md").write_text("\n".join(lines), encoding="utf-8")
@@ -101,13 +101,13 @@ def image_grid(rows, fname: str, title: str, col_titles=None) -> None:
 
 
 def qualitative(engine, k: int = 5) -> None:
-    lines = ["# Case tot / case xau (nhanh dense)", "",
+    lines = ["# Case tốt / case xấu (nhánh dense)", "",
              f"Model: {engine.encoder.label}, strategy=dense.", ""]
     grid = []
     for q, note in PROBE_QUERIES:
         hits, timing = engine.search(text=q, k=k, strategy="dense")
         lines += [f"## \"{q}\"", "", f"({note}; {timing['total']:.0f} ms)", "",
-                  "| # | diem | caption cua anh tra ve |", "|---|---|---|",
+                  "| # | điểm | caption của ảnh trả về |", "|---|---|---|",
                   *[f"| {h.rank} | {h.score:.4f} | {first_caption(h)[:95]} |" for h in hits], ""]
         grid.append((q, [h.image_path for h in hits[:4]]))
     (RESULTS / "qualitative.md").write_text("\n".join(lines), encoding="utf-8")
@@ -117,11 +117,11 @@ def qualitative(engine, k: int = 5) -> None:
 
 def strategy_compare(engine, k: int = 3) -> None:
     engine.search(text="warm up", k=1, strategy="hybrid_rerank")  # nap L/14 truoc khi do ms
-    lines = ["# So sanh 4 cau hinh tren cung truy van", "",
-             f"Rerank: CLIP ViT-L/14, N={configs.RERANK_N}. Moi o la caption dau cua anh top-1..3.", ""]
+    lines = ["# So sánh 4 cấu hình trên cùng truy vấn", "",
+             f"Rerank: CLIP ViT-L/14, N={configs.RERANK_N}. Mỗi ô là caption đầu tiên của ảnh top-1..3.", ""]
     grid = []
     for q in STRATEGY_QUERIES:
-        lines += [f"## \"{q}\"", "", "| cau hinh | #1 | #2 | #3 | ms |", "|---|---|---|---|---|"]
+        lines += [f"## \"{q}\"", "", "| cấu hình | #1 | #2 | #3 | ms |", "|---|---|---|---|---|"]
         top1 = []
         for name, strategy in STRATEGIES.items():
             hits, timing = engine.search(text=q, k=k, strategy=strategy)

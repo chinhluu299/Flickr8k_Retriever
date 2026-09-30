@@ -137,7 +137,7 @@ def measure_latency() -> dict:
 def fmt(title: str, rows: dict) -> str:
     cols = list(dict.fromkeys(c for r in rows.values() for c in r))
     w = max(len(k) for k in rows)
-    lines = [f"| {'Cau hinh'.ljust(w)} | " + " | ".join(c.rjust(9) for c in cols) + " |",
+    lines = [f"| {'Cấu hình'.ljust(w)} | " + " | ".join(c.rjust(9) for c in cols) + " |",
              f"|{'-' * (w + 2)}|" + "|".join("-" * 11 for _ in cols) + "|"]
     for name, r in rows.items():
         cells = []
@@ -169,7 +169,7 @@ def main() -> None:
     sim_h = rrf_sim(sim_dense, sim_bm, k=configs.RRF_K, n_cand=configs.N_CAND)
 
     rows = {
-        "BM25 tren caption (LOO)": retrieval_metrics(sim_bm, gt),
+        "BM25 trên caption (LOO)": retrieval_metrics(sim_bm, gt),
         "dense CLIP ViT-B/32": retrieval_metrics(sim_dense, gt),
         "hybrid RRF (dense + BM25)": retrieval_metrics(sim_h, gt),
         "dense CLIP ViT-L/14": retrieval_metrics(sim_l14, gt),
@@ -178,7 +178,7 @@ def main() -> None:
     if args.ce_sample > 0:
         print(f"cross-encoder tren {args.ce_sample} truy van ...")
         ce, qidx = crossencoder_rerank_metrics(corpus, sim_h, 20, args.ce_sample)
-        tag = f"({len(qidx)} truy van)"
+        tag = f"({len(qidx)} truy vấn)"
         rows[f"hybrid RRF {tag}"] = retrieval_metrics(sim_h[qidx], gt[qidx])
         rows[f"hybrid + rerank L/14, N=20 {tag}"] = retrieval_metrics(rerank_sim(sim_h, sim_l14, 20)[qidx], gt[qidx])
         rows[f"hybrid + rerank cross-encoder, N=20 {tag}"] = ce
@@ -190,35 +190,36 @@ def main() -> None:
         print(f"{name}: R@1={m['R@1']:.2f} nDCG@10={m['nDCG@10']:.4f}")
 
     report = [
-        "# Ket qua danh gia", "",
-        f"Text->image tren split {corpus.split} cua Flickr8k ({corpus.n_images} anh, {corpus.n_captions} caption). "
-        "Moi caption la mot truy van, dung neu anh goc nam trong top-K. R@K theo %, nDCG@10 voi "
-        "mot tai lieu dung, MedR la thu hang trung vi cua anh dung.", "",
-        fmt("Bang chinh", rows),
-        f"BM25 leave-one-out: bo caption dang lam truy van khoi tai lieu. Hybrid gop top-{configs.N_CAND} "
-        f"cua dense va BM25 bang RRF (k={configs.RRF_K}). Rerank xep lai top-N cua hybrid bang CLIP L/14. "
-        "ms/query do online qua SearchEngine, trung vi 50 truy van sau warm-up.",
+        "# Kết quả đánh giá", "",
+        f"Text→image trên split {corpus.split} của Flickr8k ({corpus.n_images} ảnh, {corpus.n_captions} caption). "
+        "Mỗi caption là một truy vấn, đúng nếu ảnh gốc nằm trong top-K. R@K theo %, nDCG@10 với "
+        "một tài liệu đúng, MedR là thứ hạng trung vị của ảnh đúng. Điểm bằng nhau được xếp "
+        "như trong hệ thống, không ưu tiên ảnh đúng.", "",
+        fmt("Bảng chính", rows),
+        f"BM25 leave-one-out: bỏ caption đang làm truy vấn khỏi tập tài liệu. Hybrid gộp top-{configs.N_CAND} "
+        f"của dense và BM25 bằng RRF (k={configs.RRF_K}). Rerank xếp lại top-N của hybrid bằng CLIP L/14. "
+        "ms/query đo online qua SearchEngine, trung vị 50 truy vấn sau warm-up.",
     ]
 
     if args.ablations:
-        report.append(fmt("A. So ung vien dua vao rerank L/14", {
+        report.append(fmt("A. Số candidate đưa vào rerank L/14", {
             f"N={n}": retrieval_metrics(rerank_sim(sim_h, sim_l14, n), gt) for n in (10, 20, 50, 100, 1000)}))
-        report.append(fmt("B. Hang so k cua RRF", {
+        report.append(fmt("B. Hằng số k của RRF", {
             f"k={k}": retrieval_metrics(rrf_sim(sim_dense, sim_bm, k=k, n_cand=configs.N_CAND), gt)
             for k in (10, 30, 60, 100)}))
-        report.append(fmt("C. So ung vien moi nhanh truoc khi gop", {
+        report.append(fmt("C. Số candidate mỗi nhánh trước khi gộp", {
             f"n_cand={n}": retrieval_metrics(rrf_sim(sim_dense, sim_bm, k=configs.RRF_K, n_cand=n), gt)
             for n in (20, 50, 100, 300)}))
-        report.append(fmt("D. BM25 co / khong bo stopword", {
-            "bo stopword": retrieval_metrics(sim_bm, gt),
-            "giu stopword": retrieval_metrics(bm25_sim(corpus, drop_stop=False), gt)}))
+        report.append(fmt("D. BM25 có / không bỏ stopword", {
+            "bỏ stopword": retrieval_metrics(sim_bm, gt),
+            "giữ stopword": retrieval_metrics(bm25_sim(corpus, drop_stop=False), gt)}))
         img_raw, cap_raw = raw_embeddings(configs.RETRIEVAL_MODEL, corpus)
         n_img = np.linalg.norm(img_raw, axis=1)
-        report.append(fmt("E. L2-normalize (cosine) vs dot product tren vector CLIP tho, nhanh dense", {
-            "co L2-norm (cosine)": retrieval_metrics(sim_dense, gt),
-            "khong norm (dot product tho)": retrieval_metrics(cap_raw @ img_raw.T, gt)}))
-        report.append(f"Vector tho la output get_image_features / get_text_features truoc F.normalize. "
-                      f"Do dai vector anh: trung binh {n_img.mean():.2f}, min {n_img.min():.2f}, max {n_img.max():.2f}.\n")
+        report.append(fmt("E. L2-normalize (cosine) và dot product trên vector CLIP thô, nhánh dense", {
+            "có L2-norm (cosine)": retrieval_metrics(sim_dense, gt),
+            "không norm (dot product thô)": retrieval_metrics(cap_raw @ img_raw.T, gt)}))
+        report.append(f"Vector thô là output của get_image_features / get_text_features trước F.normalize. "
+                      f"Độ dài vector ảnh: trung bình {n_img.mean():.2f}, nhỏ nhất {n_img.min():.2f}, lớn nhất {n_img.max():.2f}.\n")
 
     Path(args.out).write_text("\n".join(report), encoding="utf-8")
     print(f"-> {args.out}")

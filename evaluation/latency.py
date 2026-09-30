@@ -14,7 +14,7 @@ from src.search import SearchEngine
 
 # ten trung voi ten dong trong bang chinh cua evaluate.py
 CONFIGS = {
-    "BM25 tren caption (LOO)": dict(strategy="bm25"),
+    "BM25 trên caption (LOO)": dict(strategy="bm25"),
     "dense CLIP ViT-B/32": dict(strategy="dense"),
     "hybrid RRF (dense + BM25)": dict(strategy="hybrid"),
     f"hybrid + rerank L/14, N={configs.RERANK_N}": dict(strategy="hybrid_rerank"),

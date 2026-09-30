@@ -1,23 +1,23 @@
 # Dataset Flickr8k
 
-- nguon: `jxie/flickr8k` (HuggingFace), split `test`
-- so anh: 1,000
-- so caption: 5,000 (5.0/anh)
+- nguồn: `jxie/flickr8k` (HuggingFace), split `test`
+- số ảnh: 1,000
+- số caption: 5,000 (5.0/ảnh)
 
-## Do dai caption (so tu)
+## Độ dài caption (số từ)
 
 | | |
 |---|---|
-| trung binh | 11.8 |
-| trung vi | 11 |
-| do lech chuan | 3.9 |
-| min | 2 |
-| max | 34 |
+| trung bình | 11.8 |
+| trung vị | 11 |
+| độ lệch chuẩn | 3.9 |
+| nhỏ nhất | 2 |
+| lớn nhất | 34 |
 | p90 | 17 |
 
-## 25 tu pho bien nhat
+## 25 từ phổ biến nhất
 
-| tu | tan so |
+| từ | tần số |
 |---|---|
 | dog | 953 |
 | man | 933 |

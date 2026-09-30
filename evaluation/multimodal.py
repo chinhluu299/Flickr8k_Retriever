@@ -80,28 +80,28 @@ def main() -> None:
 
     dense, pipe = {}, {}
     d, p = full(cap_b, cap_l)
-    dense["chi chu"], pipe["chi chu"] = retrieval_metrics(d, gt), retrieval_metrics(p, gt)
+    dense["chỉ chữ"], pipe["chỉ chữ"] = retrieval_metrics(d, gt), retrieval_metrics(p, gt)
     for a in ALPHAS:
         d, p = full(fuse(crop["b32"], cap_b, a), fuse(crop["l14"], cap_l, a))
         dense[f"alpha={a}"], pipe[f"alpha={a}"] = retrieval_metrics(d, gt), retrieval_metrics(p, gt)
     d, p = full(crop["b32"], crop["l14"], use_bm25=False)
-    dense["chi anh"], pipe["chi anh"] = retrieval_metrics(d, gt), retrieval_metrics(p, gt)
+    dense["chỉ ảnh"], pipe["chỉ ảnh"] = retrieval_metrics(d, gt), retrieval_metrics(p, gt)
 
     # tron vector tho (khong L2-normalize tung ben truoc khi cong)
     _, cap_raw = raw_embeddings(configs.RETRIEVAL_MODEL, corpus)
-    raw_rows = {"alpha=0.5, chuan hoa tung ben": dense["alpha=0.5"],
-                "alpha=0.5, tron vector tho": retrieval_metrics(fuse(crop["b32_raw"], cap_raw, 0.5) @ img_b.T, gt)}
+    raw_rows = {"alpha=0.5, chuẩn hoá từng bên": dense["alpha=0.5"],
+                "alpha=0.5, trộn vector thô": retrieval_metrics(fuse(crop["b32_raw"], cap_raw, 0.5) @ img_b.T, gt)}
     n_txt, n_img = np.linalg.norm(cap_raw, axis=1).mean(), np.linalg.norm(crop["b32_raw"], axis=1).mean()
 
     report = [
-        "# Truy van anh va chu + anh", "",
-        f"Anh truy van: vung cat ngau nhien {int(CROP_SCALE[0]*100)}-{int(CROP_SCALE[1]*100)}% dien tich cua anh dich "
-        f"(lat ngang 50%, seed 0). Chu: caption cua anh dich, BM25 leave-one-out. {len(gt)} truy van; "
-        f"dong 'chi anh' tuong ung {corpus.n_images} anh cat, moi anh lap 5 lan.", "",
-        fmt("Dense CLIP B/32 (fuse q = norm(alpha*v_anh + (1-alpha)*v_chu))", dense),
-        fmt(f"Pipeline day du (hybrid RRF + rerank L/14, N={N}); 'chi anh' khong co BM25", pipe),
-        fmt("Tron vector khi chua chuan hoa tung ben, dense B/32", raw_rows),
-        f"Do dai trung binh vector tho: chu {n_txt:.2f}, anh cat {n_img:.2f}.\n",
+        "# Truy vấn ảnh và chữ + ảnh", "",
+        f"Ảnh truy vấn: vùng cắt ngẫu nhiên {int(CROP_SCALE[0]*100)}-{int(CROP_SCALE[1]*100)}% diện tích của ảnh đích "
+        f"(lật ngang 50%, seed 0). Chữ: caption của ảnh đích, BM25 leave-one-out. {len(gt)} truy vấn; "
+        f"dòng 'chỉ ảnh' ứng với {corpus.n_images} ảnh cắt, mỗi ảnh lặp 5 lần.", "",
+        fmt("Dense CLIP B/32 (q = norm(alpha·v_ảnh + (1−alpha)·v_chữ))", dense),
+        fmt(f"Pipeline đầy đủ (hybrid RRF + rerank L/14, N={N}); 'chỉ ảnh' không có BM25", pipe),
+        fmt("Trộn vector khi chưa chuẩn hoá từng bên, dense B/32", raw_rows),
+        f"Độ dài trung bình vector thô: chữ {n_txt:.2f}, ảnh cắt {n_img:.2f}.\n",
     ]
     out = RESULTS / "multimodal.md"
     out.write_text("\n".join(report), encoding="utf-8")
