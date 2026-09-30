@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tìm kiếm Ngữ nghĩa Đa phương thức</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#181b25; --panel2:#1f2330; --line:#2b3040;
+    --fg:#e8eaf0; --muted:#9aa2b5; --accent:#6c8cff; --accent2:#4ad3a8; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  header{padding:28px 24px 18px;border-bottom:1px solid var(--line);
+         background:linear-gradient(180deg,#151824,#0f1117)}
+  h1{margin:0;font-size:22px;letter-spacing:-.2px}
+  main{max-width:1180px;margin:0 auto;padding:22px 24px 60px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+        padding:18px;margin-bottom:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .query{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:stretch}
+  @media (max-width:760px){.query{grid-template-columns:1fr}}
+  .qcol{display:flex;flex-direction:column;gap:10px}
+  .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  input[type=text]{width:100%;padding:12px 14px;border-radius:10px;
+       border:1px solid var(--line);background:#12151f;color:var(--fg);font-size:14px}
+  input[type=text]:focus{outline:none;border-color:var(--accent)}
+  button{padding:12px 20px;border-radius:10px;border:none;background:var(--accent);
+       color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 10px;font-size:12px}
+  button.ghost:hover{color:var(--fg);border-color:var(--accent)}
+  select,label{font-size:13px;color:var(--muted)}
+  select{padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+       background:#12151f;color:var(--fg)}
+  .drop{flex:1;min-height:120px;border:2px dashed var(--line);border-radius:var(--radius);padding:16px;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+       text-align:center;color:var(--muted);cursor:pointer;transition:.15s;position:relative}
+  .drop:hover,.drop.over{border-color:var(--accent);color:var(--fg);background:#141824}
+  .drop.has{border-style:solid;padding:8px}
+  .drop img{max-height:150px;max-width:100%;border-radius:8px}
+  .drop .clear{position:absolute;top:6px;right:6px}
+  .alpha{display:none;align-items:center;gap:10px;font-size:12px;color:var(--muted);
+         background:#12151f;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+  .alpha.on{display:flex}
+  .alpha input{flex:1;accent-color:var(--accent)}
+  .alpha b{color:var(--fg);min-width:44px;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .hit{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);
+       overflow:hidden;position:relative;transition:.15s;cursor:pointer}
+  .hit:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .hit img{width:100%;height:150px;object-fit:cover;display:block;background:#0b0d13}
+  .hit .body{padding:10px 12px}
+  .cap{font-size:12px;color:var(--fg);margin:0 0 6px;display:-webkit-box;
+       -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .badge{position:absolute;top:8px;left:8px;background:rgba(10,12,18,.85);
+       border:1px solid var(--line);color:var(--accent2);font-size:11px;font-weight:700;
+       padding:3px 8px;border-radius:999px}
+  .hint{position:absolute;bottom:158px;right:8px;background:rgba(10,12,18,.85);color:var(--muted);
+       font-size:10px;padding:2px 7px;border-radius:999px;opacity:0;transition:.15s}
+  .hit:hover .hint{opacity:1}
+  .score{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .status{font-size:13px;color:var(--muted);margin:14px 0}
+  .err{color:#ff8a8a}
+  .examples{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);
+       background:#12151f;color:var(--muted);cursor:pointer}
+  .chip:hover{color:var(--fg);border-color:var(--accent)}
+  .hidden{display:none}
+  .timing{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .timing span{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .timing b{color:var(--accent2)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tìm kiếm Ngữ nghĩa Đa phương thức</h1>
+</header>
+
+<main>
+  <div class="card">
+    <div class="query">
+      <!-- Cot chu -->
+      <div class="qcol">
+        <div class="lbl">Câu chữ (tuỳ chọn)</div>
+        <input type="text" id="q" placeholder="ví dụ: two dogs playing in the snow" autocomplete="off">
+        <div class="examples" id="examples"></div>
+        <div class="alpha" id="alphaWrap">
+          <span>Ưu tiên chữ</span>
+          <input type="range" id="alpha" min="0" max="100" value="50">
+          <span>Ưu tiên ảnh</span>
+          <b id="alphaVal">50%</b>
+        </div>
+      </div>
+      <!-- Cot anh -->
+      <div class="qcol">
+        <div class="lbl">Tấm ảnh (tuỳ chọn)</div>
+        <div class="drop" id="drop">
+          <div id="dropText">
+            <div>Kéo thả ảnh vào đây hoặc <b>bấm để chọn</b></div>
+            <div style="font-size:12px;margin-top:6px">JPG / PNG</div>
+          </div>
+          <img id="preview" class="hidden" alt="ảnh truy vấn">
+          <button class="ghost clear hidden" id="clearImg" title="Bỏ ảnh">✕</button>
+          <input type="file" id="file" accept="image/*" class="hidden">
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button id="go">Tìm ảnh</button>
+      <label>Top-k <select id="k">
+        <option>6</option><option selected>12</option><option>24</option><option>36</option>
+      </select></label>
+      <label>Cách tìm <select id="strategy">
+        <option value="dense">dense (CLIP + FAISS)</option>
+        <option value="bm25">BM25 trên caption</option>
+        <option value="hybrid">hybrid (RRF dense + BM25)</option>
+        <option value="hybrid_rerank" selected>hybrid + rerank L/14</option>
+      </select></label>
+      <label id="rerankWrap">Rerank top-N <select id="rerankN" title="số ứng viên đưa vào rerank L/14">
+        <option>20</option><option selected>50</option><option>100</option>
+      </select></label>
+    </div>
+    <div class="timing" id="timing"></div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script>
+const API = "";
+let file = null;
+
+const EXAMPLES = [
+  "two dogs playing in the snow",
+  "a man riding a bicycle on a mountain trail",
+  "a little girl in a pink dress",
+  "people sitting at a table outside a restaurant",
+  "a surfer riding a big wave",
+  "a black and white dog jumping over a hurdle",
+];
+
+const $ = id => document.getElementById(id);
+const hasText = () => $("q").value.trim().length > 0;
+const hasImage = () => file !== null;
+
+// khoi tao
+(async function init(){
+  $("examples").innerHTML = EXAMPLES.map(e=>`<div class="chip">${e}</div>`).join("");
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{
+    $("q").value=c.textContent; updateAlphaVisibility(); run();
+  });
+  try{ await loadInfo(); }
+  catch(e){ setStatus("Không kết nối được API. Hãy chạy: python3 -m uvicorn app.api:app --port 8000", true); }
+})();
+
+async function loadInfo(){
+  const i = await (await fetch(API+"/api/info")).json();
+  if(i.detail) setStatus(i.detail, true);
+}
+$("strategy").onchange = ()=>{
+  $("rerankWrap").style.display = $("strategy").value === "hybrid_rerank" ? "" : "none";
+};
+
+// slider alpha, chi hien khi co ca chu va anh
+function updateAlphaVisibility(){
+  $("alphaWrap").classList.toggle("on", hasText() && hasImage());
+}
+$("alpha").oninput = ()=> $("alphaVal").textContent = $("alpha").value + "%";
+$("q").oninput = updateAlphaVisibility;
+
+// upload anh
+const drop = $("drop");
+drop.onclick = e => { if(e.target.id !== "clearImg") $("file").click(); };
+drop.ondragover = e=>{ e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = ()=> drop.classList.remove("over");
+drop.ondrop = e=>{
+  e.preventDefault(); drop.classList.remove("over");
+  if(e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+};
+$("file").onchange = e => e.target.files[0] && setFile(e.target.files[0]);
+$("clearImg").onclick = e => { e.stopPropagation(); clearFile(); };
+
+function setFile(f){
+  file = f;
+  const r = new FileReader();
+  r.onload = ev => {
+    $("preview").src = ev.target.result;
+    $("preview").classList.remove("hidden");
+    $("dropText").classList.add("hidden");
+    $("clearImg").classList.remove("hidden");
+    drop.classList.add("has");
+  };
+  r.readAsDataURL(f);
+  updateAlphaVisibility();
+  run();
+}
+function clearFile(){
+  file = null; $("file").value = "";
+  $("preview").classList.add("hidden"); $("preview").src = "";
+  $("dropText").classList.remove("hidden");
+  $("clearImg").classList.add("hidden");
+  drop.classList.remove("has");
+  updateAlphaVisibility();
+}
+
+// bam vao ket qua -> dung lam anh truy van
+async function useResultAsQuery(url){
+  try{
+    const blob = await (await fetch(url)).blob();
+    setFile(new File([blob], url.split("/").pop() || "result.jpg", {type: blob.type || "image/jpeg"}));
+  }catch(e){ setStatus("Không tải được ảnh kết quả.", true); }
+}
+
+// tim kiem
+$("go").onclick = run;
+$("q").onkeydown = e => { if(e.key === "Enter" && !e.isComposing) run(); };
+
+async function run(){
+  if(!hasText() && !hasImage()) return setStatus("Hãy nhập câu chữ hoặc chọn một tấm ảnh (hoặc cả hai).", true);
+  const fd = new FormData();
+  if(hasText())  fd.append("query", $("q").value.trim());
+  if(hasImage()) fd.append("file", file);
+  fd.append("k", $("k").value);
+  fd.append("alpha", ($("alpha").value/100).toString());
+  fd.append("strategy", $("strategy").value);
+  fd.append("rerank_n", $("rerankN").value);
+
+  setStatus("Đang tìm…"); $("go").disabled = true;
+  try{
+    const res = await fetch(API+"/api/search", {method:"POST", body:fd});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || "Lỗi máy chủ");
+    render(data.results);
+    const modeLabel = {text:"chữ → ảnh", image:"ảnh → ảnh", "text+image":"chữ + ảnh → ảnh"}[data.mode] || data.mode;
+    const alphaNote = data.alpha != null ? ` · trọng số ảnh ${Math.round(data.alpha*100)}%` : "";
+    const stratLabel = {dense:"dense", bm25:"BM25", hybrid:"hybrid RRF", hybrid_rerank:"hybrid + rerank L/14"}[data.strategy] || data.strategy;
+    setStatus(`Top ${data.count} ảnh cho ${escapeHtml(data.query)} · ${data.elapsed_ms} ms · <b>${modeLabel}</b> · ${stratLabel}${alphaNote}`);
+    renderTiming(data.timing);
+  }catch(e){ render([]); renderTiming(null); setStatus(e.message, true); }
+  finally{ $("go").disabled = false; }
+}
+
+function setStatus(html, isErr){
+  $("status").innerHTML = html;
+  $("status").className = "status" + (isErr ? " err" : "");
+}
+
+function renderTiming(t){
+  if(!t){ $("timing").innerHTML = ""; return; }
+  const names = {encode:"encode truy vấn", dense:"FAISS", bm25:"BM25", rrf:"RRF", rerank:"rerank", total:"tổng"};
+  $("timing").innerHTML = Object.keys(t).filter(k=>k!=="total").map(k=>`<span>${names[k]||k} <b>${t[k]} ms</b></span>`).join("")
+    + `<span>tổng <b>${t.total} ms</b></span>`;
+}
+
+function render(hits){
+  if(!hits || !hits.length){ $("grid").innerHTML = ""; return; }
+  $("grid").innerHTML = hits.map(h=>`
+    <div class="hit" data-url="${h.image_url}" title="Bấm để tìm ảnh tương tự ảnh này">
+      <div class="badge">#${h.rank} · ${h.score.toFixed(3)}</div>
+      <img src="${h.image_url}" loading="lazy" alt="">
+      <span class="hint">tìm ảnh tương tự</span>
+      <div class="body">
+        <p class="cap">${escapeHtml(h.captions?.[0] || "")}</p>
+        <span class="score">cosine ${h.score.toFixed(4)}</span>
+      </div>
+    </div>`).join("");
+  document.querySelectorAll(".hit").forEach(el => el.onclick = () => useResultAsQuery(el.dataset.url));
+}
+const escapeHtml = s => (s||"").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+</script>
+</body>
+</html>
